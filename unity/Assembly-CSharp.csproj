@@ -64,23 +64,32 @@
     <Analyzer Include="/Applications/Unity/Hub/Editor/2022.3.38f1/Unity.app/Contents/Tools/Unity.SourceGenerators/Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets/Darkbringer Shader/Preview/DarkbringerUIPreview.cs" />
-    <Compile Include="Assets/Darkbringer Shader/Preview/Rotate.cs" />
-    <Compile Include="Assets/Darkbringer Shader/DarkbringerEffect.cs" />
-    <Compile Include="Assets/Polytope Studio/Lowpoly_Demos/Environment_Free/Helpers/PT_PlayerMovement.cs" />
-    <Compile Include="Assets/Polytope Studio/Lowpoly_Demos/Environment_Free/Helpers/PT_MouseLook.cs" />
+    <Compile Include="Assets/滤镜Darkbringer Shader/Preview/Rotate.cs" />
+    <Compile Include="Assets/MisScripts/ImageGlitchControl.cs" />
+    <Compile Include="Assets/树Polytope Studio/Lowpoly_Demos/Environment_Free/Helpers/PT_PlayerMovement.cs" />
+    <Compile Include="Assets/MisScripts/VHSPostProcess.cs" />
+    <Compile Include="Assets/树Polytope Studio/Lowpoly_Demos/Environment_Free/Helpers/PT_MouseLook.cs" />
+    <Compile Include="Assets/MisScripts/SpecktrumCubeS.cs" />
+    <Compile Include="Assets/MisScripts/VHSTextureMovie.cs" />
+    <Compile Include="Assets/滤镜Darkbringer Shader/Preview/DarkbringerUIPreview.cs" />
+    <Compile Include="Assets/MisScripts/CameraClass.cs" />
+    <Compile Include="Assets/滤镜Darkbringer Shader/DarkbringerEffect.cs" />
     <Compile Include="Assets/ForestGrowthController.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assets/Polytope Studio/Lowpoly_Environments/Sources/Shaders/PT_Vegetation_Plants_Shader.shader" />
-    <None Include="Assets/Polytope Studio/Lowpoly_Village/Sources/Shaders/PT_Buildings_Shader_PBR.shader" />
-    <None Include="Assets/Polytope Studio/Lowpoly_Environments/Sources/Shaders/PT_Vegetation_Opaque_Shader.shader" />
-    <None Include="Assets/Polytope Studio/Lowpoly_Environments/Sources/Shaders/PT_Vegetation_Foliage_Shader.shader" />
-    <None Include="Assets/Polytope Studio/Lowpoly_Environments/Sources/Shaders/PT_Water_Shader.shader" />
-    <None Include="Assets/Polytope Studio/Lowpoly_Environments/Sources/Shaders/PT_Vegetation_Flowers_Shader.shader" />
-    <None Include="Assets/Darkbringer Shader/DarkBringerRefined_1_2.shader" />
-    <None Include="Assets/Darkbringer Shader/DarkBringerRefined.shader" />
-    <None Include="Assets/Polytope Studio/Lowpoly_Environments/Sources/Shaders/PT_Rock_Shader.shader" />
+    <None Include="Assets/MisShaders/NewShader1.shader" />
+    <None Include="Assets/树Polytope Studio/Lowpoly_Environments/Sources/Shaders/PT_Vegetation_Plants_Shader.shader" />
+    <None Include="Assets/树Polytope Studio/Lowpoly_Village/Sources/Shaders/PT_Buildings_Shader_PBR.shader" />
+    <None Include="Assets/MisShaders/VHSPostProcessEffect.shader" />
+    <None Include="Assets/树Polytope Studio/Lowpoly_Environments/Sources/Shaders/PT_Vegetation_Opaque_Shader.shader" />
+    <None Include="Assets/树Polytope Studio/Lowpoly_Environments/Sources/Shaders/PT_Vegetation_Foliage_Shader.shader" />
+    <None Include="Assets/树Polytope Studio/Lowpoly_Environments/Sources/Shaders/PT_Water_Shader.shader" />
+    <None Include="Assets/树Polytope Studio/Lowpoly_Environments/Sources/Shaders/PT_Vegetation_Flowers_Shader.shader" />
+    <None Include="Assets/滤镜Darkbringer Shader/DarkBringerRefined_1_2.shader" />
+    <None Include="Assets/滤镜Darkbringer Shader/DarkBringerRefined.shader" />
+    <None Include="Assets/MisShaders/GlitchCube.shader" />
+    <None Include="Assets/树Polytope Studio/Lowpoly_Environments/Sources/Shaders/PT_Rock_Shader.shader" />
+    <None Include="Assets/MisShaders/ImageGlitchShader.shader" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

@@ -64,8 +64,8 @@
     <Analyzer Include="/Applications/Unity/Hub/Editor/2022.3.38f1/Unity.app/Contents/Tools/Unity.SourceGenerators/Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets/Darkbringer Shader/Editor/DarkBringerEffectEditor.cs" />
-    <Compile Include="Assets/Polytope Studio/Welcome_Screen/Editor/PT_Welcome_Screen.cs" />
+    <Compile Include="Assets/树Polytope Studio/Welcome_Screen/Editor/PT_Welcome_Screen.cs" />
+    <Compile Include="Assets/滤镜Darkbringer Shader/Editor/DarkBringerEffectEditor.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

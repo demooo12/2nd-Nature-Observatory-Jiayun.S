@@ -351,12 +351,17 @@
 -r:"Library/Bee/artifacts/200b0aE.dag/UnityEngine.UI.ref.dll"
 -analyzer:"/Applications/Unity/Hub/Editor/2022.3.38f1/Unity.app/Contents/Tools/Unity.SourceGenerators/Unity.Properties.SourceGenerator.dll"
 -analyzer:"/Applications/Unity/Hub/Editor/2022.3.38f1/Unity.app/Contents/Tools/Unity.SourceGenerators/Unity.SourceGenerators.dll"
-"Assets/Darkbringer Shader/DarkbringerEffect.cs"
-"Assets/Darkbringer Shader/Preview/DarkbringerUIPreview.cs"
-"Assets/Darkbringer Shader/Preview/Rotate.cs"
 "Assets/ForestGrowthController.cs"
-"Assets/Polytope Studio/Lowpoly_Demos/Environment_Free/Helpers/PT_MouseLook.cs"
-"Assets/Polytope Studio/Lowpoly_Demos/Environment_Free/Helpers/PT_PlayerMovement.cs"
+"Assets/MisScripts/CameraClass.cs"
+"Assets/MisScripts/ImageGlitchControl.cs"
+"Assets/MisScripts/SpecktrumCubeS.cs"
+"Assets/MisScripts/VHSPostProcess.cs"
+"Assets/MisScripts/VHSTextureMovie.cs"
+"Assets/树Polytope Studio/Lowpoly_Demos/Environment_Free/Helpers/PT_MouseLook.cs"
+"Assets/树Polytope Studio/Lowpoly_Demos/Environment_Free/Helpers/PT_PlayerMovement.cs"
+"Assets/滤镜Darkbringer Shader/DarkbringerEffect.cs"
+"Assets/滤镜Darkbringer Shader/Preview/DarkbringerUIPreview.cs"
+"Assets/滤镜Darkbringer Shader/Preview/Rotate.cs"
 -langversion:9.0
 /deterministic
 /optimize+

@@ -5,31 +5,48 @@ using System;
 [ExecuteAlways]
 public class ForestGrowthController : MonoBehaviour
 {
-    [Header("地形")]
+    [Header("绑定你的地形")]
     public Terrain targetTerrain;
 
-    [Header("备份森林状态")]
+    [Header("【核心保护】一键备份满级森林")]
     public bool saveCurrentForestAsMax = false;
 
-    [Header("旋钮控制环境光")]
+    [Header("天空盒动态控制")]
+    [Tooltip("把你截图里的 PT_Skybox_mat 材质球拖到这里")]
+    public Material skyboxMaterial;
+    [Tooltip("天空旋转速度，数值越大转得越快")]
+    public float skyboxRotationSpeed = 1.5f;
+    
+    [Tooltip("低网速：天空明亮灰色 (对应十六进制 #939393)")]
+    public Color normalSkyTint = new Color(147f / 255f, 147f / 255f, 147f / 255f, 1f);
+    
+    [Tooltip("高网速：过载压抑深灰 (对应十六进制 #5E5E5E)")]
+    public Color overloadSkyTint = new Color(94f / 255f, 94f / 255f, 94f / 255f, 1f);
+
+    [Header("绑定你的环境光")]
     public Light directionalLight; 
     public Color normalColor = new Color(0.584f, 0.576f, 0.192f); 
     public Color overloadColor = new Color(0.584f, 0.192f, 0.200f);
 
-    [Header("光影旋转")]
-    [Tooltip("是否开启环境光随时间自动旋转")]
+    [Header("光影动态旋转")]
     public bool enableLightRotation = true;
-    [Tooltip("光线旋转的速度。Y轴控制影子水平移动，X轴控制日夜高低。建议先只给 Y 轴一个数值测试。")]
     public Vector3 lightRotationSpeed = new Vector3(0f, 5f, 0f); 
 
-    [Header("是否Arduino")]
+    [Header("树叶材质变色")]
+    public Material treeLeavesMaterial;
+    [ColorUsage(true, true)]
+    public Color normalTopColor = new Color(18f / 255f, 72f / 255f, 42f / 255f, 1f);
+    [ColorUsage(true, true)]
+    public Color overloadTopColor = new Color(29f / 255f, 7f / 255f, 6f / 255f, 1f);
+
+    [Header("控制模式切换")]
     public bool useHardware = true;
 
     [Header("串口设置")]
     public string portName = "COM3"; 
     public int baudRate = 9600;
 
-    [Header("手动控制调试")]
+    [Header("核心控制滑块")]
     [Range(0f, 1f)]
     public float knobValue = 0f; 
 
@@ -39,13 +56,24 @@ public class ForestGrowthController : MonoBehaviour
     private SerialPort stream;
     private TerrainData terrainData;
     private float lastKnobValue = -1f;
+    private float initialSkyboxRotation = 0f; 
+    private Color initialSkyTint = Color.gray; // 记录天空盒初始色彩
 
     void Start()
     {
         if (targetTerrain == null) targetTerrain = Terrain.activeTerrain;
         if (targetTerrain != null) terrainData = targetTerrain.terrainData;
 
-        // 如果开启了硬件且在Play模式，尝试连接
+        // 记录天空盒的初始状态，方便退出时复原资产
+        if (skyboxMaterial != null)
+        {
+            initialSkyboxRotation = skyboxMaterial.GetFloat("_Rotation");
+            if (skyboxMaterial.HasProperty("_Tint"))
+            {
+                initialSkyTint = skyboxMaterial.GetColor("_Tint");
+            }
+        }
+
         if (Application.isPlaying && useHardware)
         {
             stream = new SerialPort(portName, baudRate);
@@ -54,12 +82,10 @@ public class ForestGrowthController : MonoBehaviour
                 stream.Open();
             }
             catch (Exception) {
-                // 没插Arduino时自动降级
                 useHardware = false; 
             }
         }
         
-        // 确保游戏一运行，立刻根据当前滑块的值刷新一次地形
         if (Application.isPlaying) 
         {
             ForceRefresh();
@@ -68,7 +94,6 @@ public class ForestGrowthController : MonoBehaviour
 
     void Update()
     {
-        // 1. 一键备份逻辑
         if (saveCurrentForestAsMax)
         {
             if (terrainData != null) 
@@ -79,7 +104,6 @@ public class ForestGrowthController : MonoBehaviour
             saveCurrentForestAsMax = false; 
         }
 
-        // 2. Arduino 硬件接收逻辑
         if (Application.isPlaying && useHardware && stream != null && stream.IsOpen)
         {
             bool hasNewData = false;
@@ -102,19 +126,23 @@ public class ForestGrowthController : MonoBehaviour
             }
         }
 
-        // 3. 核心视觉刷新逻辑 (地形和光线颜色)
         if (Mathf.Abs(knobValue - lastKnobValue) > 0.005f)
         {
             ForceRefresh();
         }
 
-        // 4. 【新增】光影动态旋转逻辑
-        // 仅在点 Play 运行游戏时旋转，防止平时在编辑器里做场景时灯光一直自己乱转
-        if (Application.isPlaying && enableLightRotation && directionalLight != null)
+        if (Application.isPlaying)
         {
-            // 使用 Time.deltaTime 确保旋转极其丝滑，不受帧率掉帧影响
-            // Space.World 确保它是围绕世界坐标轴自转，效果最自然
-            directionalLight.transform.Rotate(lightRotationSpeed * Time.deltaTime, Space.World);
+            if (enableLightRotation && directionalLight != null)
+            {
+                directionalLight.transform.Rotate(lightRotationSpeed * Time.deltaTime, Space.World);
+            }
+
+            if (skyboxMaterial != null)
+            {
+                float currentRot = skyboxMaterial.GetFloat("_Rotation");
+                skyboxMaterial.SetFloat("_Rotation", currentRot + skyboxRotationSpeed * Time.deltaTime);
+            }
         }
     }
 
@@ -129,7 +157,7 @@ public class ForestGrowthController : MonoBehaviour
         }
 
         UpdateForestDensity();
-        UpdateLightingColor();
+        UpdateVisuals();
         lastKnobValue = knobValue;
     }
 
@@ -144,21 +172,47 @@ public class ForestGrowthController : MonoBehaviour
         terrainData.treeInstances = currentTrees;
     }
 
-    void UpdateLightingColor()
+    // 视觉核心同步更新
+    void UpdateVisuals()
     {
+        // 1. 环境光变色 (绿 -> 红)
         if (directionalLight != null)
             directionalLight.color = Color.Lerp(normalColor, overloadColor, knobValue);
+
+        // 2. 树叶材质 HDR 变色 (绿 -> 红)
+        if (treeLeavesMaterial != null)
+            treeLeavesMaterial.SetColor("_TopColor", Color.Lerp(normalTopColor, overloadTopColor, knobValue));
+
+        // 3. 天空盒 Tint 变色 (浅灰 #939393 -> 深灰 #5E5E5E) (NEW)
+        if (skyboxMaterial != null && skyboxMaterial.HasProperty("_Tint"))
+        {
+            skyboxMaterial.SetColor("_Tint", Color.Lerp(normalSkyTint, overloadSkyTint, knobValue));
+        }
     }
 
-    void OnApplicationQuit() { RestoreTrees(); }
-    void OnDisable() { RestoreTrees(); }
+    void OnApplicationQuit() { RestoreAssets(); }
+    void OnDisable() { RestoreAssets(); }
 
-    void RestoreTrees()
+    void RestoreAssets()
     {
         if (terrainData != null && maxTreesBackup != null && maxTreesBackup.Length > 0)
         {
             terrainData.treeInstances = maxTreesBackup;
         }
+
         if (stream != null && stream.IsOpen) stream.Close();
+
+        if (treeLeavesMaterial != null)
+            treeLeavesMaterial.SetColor("_TopColor", normalTopColor);
+
+        // 彻底还原天空盒的所有初始状态，防止资产永久受损
+        if (skyboxMaterial != null)
+        {
+            skyboxMaterial.SetFloat("_Rotation", initialSkyboxRotation);
+            if (skyboxMaterial.HasProperty("_Tint"))
+            {
+                skyboxMaterial.SetColor("_Tint", initialSkyTint);
+            }
+        }
     }
 }
