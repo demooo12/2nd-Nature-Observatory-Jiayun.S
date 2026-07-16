@@ -1,6 +1,8 @@
 using UnityEngine;
 using System.IO.Ports;
 using System;
+using System.Net;
+using System.Net.Sockets;
 
 [ExecuteAlways]
 public class ForestGrowthController : MonoBehaviour
@@ -40,6 +42,10 @@ public class ForestGrowthController : MonoBehaviour
     public string portName = "COM3"; 
     public int baudRate = 9600;
 
+    [Header("转发给TD (UDP)")]
+    public string tdIP = "127.0.0.1";
+    public int tdPort = 7000;
+
     [Header("核心控制滑块")]
     [Range(0f, 1f)]
     public float knobValue = 0f; 
@@ -52,6 +58,9 @@ public class ForestGrowthController : MonoBehaviour
     private float lastKnobValue = -1f;
     private float initialSkyboxRotation = 0f; 
     private Color initialSkyTint = Color.gray; 
+
+    private UdpClient udpClient;
+    private IPEndPoint tdEndPoint;
 
     void Start()
     {
@@ -77,6 +86,12 @@ public class ForestGrowthController : MonoBehaviour
             catch (Exception) {
                 useHardware = false; 
             }
+        }
+
+        if (Application.isPlaying)
+        {
+            udpClient = new UdpClient();
+            tdEndPoint = new IPEndPoint(IPAddress.Parse(tdIP), tdPort);
         }
         
         // 【安全修正】只有在真正运行游戏时，才在初始化时刷新地形
@@ -124,8 +139,19 @@ public class ForestGrowthController : MonoBehaviour
                 {
                     try {
                         int parsedValue = int.Parse(latestRawValue);
-                        float tempValue = Mathf.Clamp01((float)parsedValue / 1023f);
-                        if (Mathf.Abs(tempValue - knobValue) > 0.01f) knobValue = tempValue;
+
+                        // 合理性校验：Arduino物理上不可能发出超过0-1023的数值
+                        if (parsedValue < 0 || parsedValue > 1023)
+                        {
+                            // 异常值，丢弃
+                        }
+                        else
+                        {
+                            float tempValue = Mathf.Clamp01((float)parsedValue / 1023f);
+                            if (Mathf.Abs(tempValue - knobValue) > 0.01f) knobValue = tempValue;
+
+                            SendToTD(parsedValue); // 转发原始数值给TD
+                        }
                     } catch (Exception) { }
                 }
             }
@@ -148,6 +174,17 @@ public class ForestGrowthController : MonoBehaviour
                 skyboxMaterial.SetFloat("_Rotation", currentRot + skyboxRotationSpeed * Time.deltaTime);
             }
         }
+    }
+
+    void SendToTD(int value)
+    {
+        if (udpClient == null) return;
+        try
+        {
+            byte[] data = System.Text.Encoding.UTF8.GetBytes(value.ToString() + "\n");
+            udpClient.Send(data, data.Length, tdEndPoint);
+        }
+        catch (Exception) { }
     }
 
     void ForceRefresh()
@@ -203,6 +240,7 @@ public class ForestGrowthController : MonoBehaviour
         }
 
         if (stream != null && stream.IsOpen) stream.Close();
+        if (udpClient != null) udpClient.Close();
 
         if (treeLeavesMaterial != null)
             treeLeavesMaterial.SetColor("_TopColor", normalTopColor);
