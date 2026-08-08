@@ -69,6 +69,7 @@
     <Compile Include="Assets/树Polytope Studio/Lowpoly_Demos/Environment_Free/Helpers/PT_PlayerMovement.cs" />
     <Compile Include="Assets/MisScripts/VHSPostProcess.cs" />
     <Compile Include="Assets/树Polytope Studio/Lowpoly_Demos/Environment_Free/Helpers/PT_MouseLook.cs" />
+    <Compile Include="Assets/SNODHudOverlay.cs" />
     <Compile Include="Assets/MisScripts/SpecktrumCubeS.cs" />
     <Compile Include="Assets/MisScripts/VHSTextureMovie.cs" />
     <Compile Include="Assets/滤镜Darkbringer Shader/Preview/DarkbringerUIPreview.cs" />

@@ -357,6 +357,7 @@
 "Assets/MisScripts/SpecktrumCubeS.cs"
 "Assets/MisScripts/VHSPostProcess.cs"
 "Assets/MisScripts/VHSTextureMovie.cs"
+"Assets/SNODHudOverlay.cs"
 "Assets/树Polytope Studio/Lowpoly_Demos/Environment_Free/Helpers/PT_MouseLook.cs"
 "Assets/树Polytope Studio/Lowpoly_Demos/Environment_Free/Helpers/PT_PlayerMovement.cs"
 "Assets/滤镜Darkbringer Shader/DarkbringerEffect.cs"

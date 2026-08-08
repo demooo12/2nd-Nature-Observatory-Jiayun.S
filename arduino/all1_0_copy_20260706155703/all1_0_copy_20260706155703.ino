@@ -67,9 +67,9 @@ void loop() {
 
     angle += direction;
 
-    // 大行程推杆范围 (10度 到 170度)
-    if (angle >= 170) direction = -1;
-    if (angle <= 10)  direction = 1;
+    // 大行程推杆范围 (0度 到 180度) —— 舵机满行程摆动
+    if (angle >= 180) direction = -1;
+    if (angle <= 0)   direction = 1;
 
     myServo.write(angle); 
   }
