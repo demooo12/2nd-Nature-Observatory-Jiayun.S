@@ -8,7 +8,19 @@ int potValue = 0;
 int controlValue = 0;  // 【新增】统一反转方向后的控制值
 int angle = 90;
 int direction = 1;
-unsigned long previousServoMillis = 0; 
+unsigned long previousServoMillis = 0;
+
+// --- 舵机摆动幅度设置 ---
+// 以 90 度为中心，上下各摆动 SERVO_AMPLITUDE 度。
+// 数值越小幅度越小、越不容易卡住。例如 20 -> 摆动范围 70~110 度。
+const int SERVO_CENTER = 90;
+const int SERVO_AMPLITUDE = 50;   // 想更小就调小，想更大就调大
+const int SERVO_MIN = SERVO_CENTER - SERVO_AMPLITUDE;
+const int SERVO_MAX = SERVO_CENTER + SERVO_AMPLITUDE;
+
+// 旋钮回到低端时的“静止/复位”阈值。controlValue 低于这个值就回中 90 度并停摆。
+// 如果拧到底舵机还在动，说明电位器到不了这么低，把这个值调大（比如 100、150）。
+const int REST_THRESHOLD = 80;
 
 // --- Unity 串口通信变量 ---
 int lastValue = -1;
@@ -46,16 +58,18 @@ void loop() {
   }
 
   // ==================== 🦖 第二部分：大舵机推杆自动旋转逻辑 ====================
-  // 【静止区判别】使用全新的 controlValue。最逆时针到底时（小于40），彻底静止在 90 度
-  if (controlValue <= 40) {
-    myServo.write(90);
-    return; 
+  // 【静止区判别】旋钮拧回低端时（低于 REST_THRESHOLD），彻底静止并复位到中心 90 度
+  if (controlValue <= REST_THRESHOLD) {
+    angle = SERVO_CENTER;      // 同步角度变量，下次启动不会突跳
+    direction = 1;             // 复位摆动方向
+    myServo.write(SERVO_CENTER);
+    return;
   }
 
   // 防止顺时针拧到底时的极限跳变
   int safeControlValue = controlValue;
   if (safeControlValue > 980) {
-    safeControlValue = 980; 
+    safeControlValue = 980;
   }
 
   // 映射速度：controlValue 越大（越顺时针），延迟越短 (6ms)，推杆运动越狂暴
@@ -67,10 +81,10 @@ void loop() {
 
     angle += direction;
 
-    // 大行程推杆范围 (0度 到 180度) —— 舵机满行程摆动
-    if (angle >= 180) direction = -1;
-    if (angle <= 0)   direction = 1;
+    // 小幅摆动范围（以 90 度为中心，上下各 SERVO_AMPLITUDE 度）
+    if (angle >= SERVO_MAX) direction = -1;
+    if (angle <= SERVO_MIN) direction = 1;
 
-    myServo.write(angle); 
+    myServo.write(angle);
   }
 }

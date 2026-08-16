@@ -15,15 +15,24 @@ public class SNODHudOverlay : MonoBehaviour
     public float previewKnob = 0.5f;
 
     [Header("外观")]
+    [Tooltip("台标 Logo 图片。拖入 Assets/SNOD_Logo。留空则回退显示 SNO · LIVE 文字。")]
+    public Texture2D logo;
+
+    [Tooltip("Logo 高度（像素，会按屏幕高度自动缩放）。宽度按原图比例。")]
+    public float logoHeight = 46f;
+
     [Tooltip("等宽字体（可选）。留空则用系统默认字体。建议拖 Courier / 任意 monospace 字体。")]
     public Font monospaceFont;
 
     [Tooltip("HUD 基础字号（会按屏幕高度自动缩放）。")]
-    public int baseFontSize = 26;
+    public int baseFontSize = 30;
 
     [Tooltip("整体不透明度。")]
     [Range(0f, 1f)]
     public float opacity = 0.75f;
+
+    [Tooltip("是否显示 FOREST COVERAGE（森林覆盖率）那一行。")]
+    public bool showForestCoverage = true;
 
     [Tooltip("距离屏幕左上角的边距（像素，按屏幕缩放）。")]
     public float margin = 24f;
@@ -38,12 +47,12 @@ public class SNODHudOverlay : MonoBehaviour
     // --- 数值区间 ---
     private const int NODES_MIN = 12;
     private const int NODES_MAX = 847;
-    private const float SIGNAL_MIN = 41.2f;
-    private const float SIGNAL_MAX = 99.2f;
+    private const float COVERAGE_MIN = 6.4f;    // 森林覆盖率下限 %
+    private const float COVERAGE_MAX = 98.6f;   // 森林覆盖率上限 %
 
     // --- 运行时状态 ---
     private float displayNodes = NODES_MIN;   // 平滑过渡后的当前显示值
-    private float displaySignal = SIGNAL_MIN;
+    private float displayCoverage = COVERAGE_MIN;
     private bool rising = false;               // 是否正在增长（决定 ▲ 是否显示）
     private float flicker = 1f;                // 闪烁系数
     private float nextFlickerTime = 0f;
@@ -66,13 +75,13 @@ public class SNODHudOverlay : MonoBehaviour
 
         // 目标值
         float targetNodes = Mathf.Lerp(NODES_MIN, NODES_MAX, knob);
-        float targetSignal = Mathf.Lerp(SIGNAL_MIN, SIGNAL_MAX, knob);
+        float targetCoverage = Mathf.Lerp(COVERAGE_MIN, COVERAGE_MAX, knob);
 
         // 平滑追赶（用 unscaledDeltaTime，避免 timeScale 影响 HUD）
         float t = 1f - Mathf.Exp(-nodeLerpSpeed * Time.unscaledDeltaTime);
         float prevNodes = displayNodes;
         displayNodes = Mathf.Lerp(displayNodes, targetNodes, t);
-        displaySignal = Mathf.Lerp(displaySignal, targetSignal, t);
+        displayCoverage = Mathf.Lerp(displayCoverage, targetCoverage, t);
 
         // 判定是否在增长（带一点死区，避免抖动误判）
         if (displayNodes - prevNodes > 0.02f) rising = true;
@@ -92,6 +101,7 @@ public class SNODHudOverlay : MonoBehaviour
         {
             bodyStyle = new GUIStyle();
             bodyStyle.alignment = TextAnchor.UpperLeft;
+            bodyStyle.fontStyle = FontStyle.Bold;
             bodyStyle.richText = true;
         }
         if (titleStyle == null)
@@ -116,10 +126,10 @@ public class SNODHudOverlay : MonoBehaviour
         BuildStyles();
 
         float knob = CurrentKnob;
-        string network = NetworkTier(knob);
+        string resolution = ResolutionTier(knob);
         int nodes = Mathf.RoundToInt(displayNodes);
-        string arrow = rising ? " ▲" : "";
-        string signal = displaySignal.ToString("F1");
+        string arrow = rising ? " ▲" : " ▼";
+        string coverage = displayCoverage.ToString("F1");
 
         float a = opacity * flicker;
         Color col = new Color(textColor.r, textColor.g, textColor.b, a);
@@ -132,10 +142,30 @@ public class SNODHudOverlay : MonoBehaviour
         float x = m;
         float y = m;
 
-        // 标题
-        titleStyle.normal.textColor = col;
-        GUI.Label(new Rect(x, y, width, lineH), "SNO · LIVE", titleStyle);
-        y += lineH * 1.15f;
+        // 标题：优先画 Logo，没有 Logo 时回退成文字
+        if (logo != null)
+        {
+            float h = logoHeight * scale;
+            float w = h * ((float)logo.width / logo.height);
+            Color prevGui = GUI.color;
+            GUI.color = new Color(1f, 1f, 1f, a);
+            GUI.DrawTexture(new Rect(x, y, w, h), logo, ScaleMode.ScaleToFit);
+            GUI.color = prevGui;
+
+            // Logo 后面接 · LIVE，垂直居中于 Logo
+            titleStyle.normal.textColor = col;
+            titleStyle.alignment = TextAnchor.MiddleLeft;
+            GUI.Label(new Rect(x + w + 10f * scale, y, width, h), "· LIVE", titleStyle);
+            titleStyle.alignment = TextAnchor.UpperLeft;
+
+            y += h + lineH * 0.35f;
+        }
+        else
+        {
+            titleStyle.normal.textColor = col;
+            GUI.Label(new Rect(x, y, width, lineH), "SNO · LIVE", titleStyle);
+            y += lineH * 1.15f;
+        }
 
         // 数据行：标签用暗色，数值用主色，营造监控界面层次
         bodyStyle.normal.textColor = col;
@@ -143,15 +173,18 @@ public class SNODHudOverlay : MonoBehaviour
         string hexHot = ColorToHex(col);
 
         GUI.Label(new Rect(x, y, width, lineH),
-            Row(hexDim, "NETWORK", hexHot, network), bodyStyle);
+            Row(hexDim, "RESOLUTION", hexHot, resolution), bodyStyle);
         y += lineH;
 
         GUI.Label(new Rect(x, y, width, lineH),
             Row(hexDim, "ACTIVE NODES", hexHot, nodes.ToString() + arrow), bodyStyle);
         y += lineH;
 
-        GUI.Label(new Rect(x, y, width, lineH),
-            Row(hexDim, "SIGNAL INTEGRITY", hexHot, signal + "%"), bodyStyle);
+        if (showForestCoverage)
+        {
+            GUI.Label(new Rect(x, y, width, lineH),
+                Row(hexDim, "FOREST COVERAGE", hexHot, coverage + "%" + arrow), bodyStyle);
+        }
     }
 
     private static string Row(string labelHex, string label, string valHex, string val)
@@ -159,12 +192,12 @@ public class SNODHudOverlay : MonoBehaviour
         return "<color=" + labelHex + ">" + label + ": </color><color=" + valHex + ">" + val + "</color>";
     }
 
-    private static string NetworkTier(float knob)
+    private static string ResolutionTier(float knob)
     {
-        if (knob < 0.25f) return "2G";
-        if (knob < 0.5f) return "3G";
-        if (knob < 0.75f) return "4G";
-        return "5G";
+        if (knob < 0.25f) return "360p";
+        if (knob < 0.5f) return "720p";
+        if (knob < 0.75f) return "1080p";
+        return "4K";
     }
 
     private static string ColorToHex(Color c)
